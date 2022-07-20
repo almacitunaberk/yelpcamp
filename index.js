@@ -1,4 +1,6 @@
 const express = require('express');
+const morgan = require('morgan');
+const ejsMate = require('ejs-mate');
 const connectDB = require('./config/db');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
@@ -6,8 +8,11 @@ const CampgroundModel = require('./models/campgroundModel');
 const path = require('path');
 const app = express();
 
+app.engine('ejs', ejsMate);
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
+
+app.use(morgan('tiny'));
 
 connectDB();
 
