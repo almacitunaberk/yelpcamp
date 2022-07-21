@@ -34,10 +34,7 @@ app.get('/campgrounds/new', (req, res) => {
 
 app.post('/campgrounds', async (req, res) => {
   const campground = req.body.campground;
-  const camp = new CampgroundModel({
-    title: campground.title,
-    location: campground.location,
-  });
+  const camp = new CampgroundModel(...campground);
   await camp.save();
   res.redirect('/campgrounds');
 });
