@@ -8,6 +8,7 @@ const ExpressError = require('./utils/ExpressError');
 const mongoose = require('mongoose');
 const CampgroundModel = require('./models/campgroundModel');
 const path = require('path');
+const ReviewModel = require('./models/reviewModel');
 const app = express();
 
 app.engine('ejs', ejsMate);
@@ -72,9 +73,8 @@ app.post(
 
 app.get(
   '/campgrounds/:id',
-  catchAsync(async (req, res) => {
-    const campground = await CampgroundModel.findById(req.params.id);
-    console.log(campground);
+  catchAsync(async (req, res, next) => {
+    const campground = await CampgroundModel.findById(req.params.id).populate('reviews');
     res.render('campgrounds/show', { campground });
   })
 );
@@ -91,7 +91,6 @@ app.put(
   '/campgrounds/:id',
   catchAsync(async (req, res) => {
     const campground = req.body.campground;
-    console.log('HIT');
     await CampgroundModel.findOneAndUpdate(req.params.id, {
       title: campground.title,
       location: campground.location,
@@ -108,6 +107,44 @@ app.delete(
   catchAsync(async (req, res) => {
     await CampgroundModel.findOneAndDelete(req.params.id);
     res.redirect('/campgrounds');
+  })
+);
+
+app.post(
+  '/campgrounds/:id/reviews',
+  catchAsync(async (req, res, next) => {
+    const { rating, body } = req.body.review;
+    const campground = await CampgroundModel.findById(req.params.id);
+    const review = new ReviewModel({
+      rating,
+      body,
+    });
+    await review.save();
+    campground.reviews.push(review);
+    await campground.save();
+    res.redirect(`/campgrounds/${campground._id}`);
+  })
+);
+
+app.get(
+  '/campgrounds/:id/reviews',
+  catchAsync(async (req, res, next) => {
+    const campground = await CampgroundModel.findById(req.params.id);
+    const reviews = await Promise.all(
+      campground.reviews.map(async (id) => {
+        return await ReviewModel.findById(id);
+      })
+    );
+    res.send(reviews);
+  })
+);
+
+app.delete(
+  '/campgrounds/:id/reviews/:review_id',
+  catchAsync(async (req, res, next) => {
+    await CampgroundModel.findByIdAndUpdate(req.params.id, { $pull: { reviews: req.params.review_id } });
+    await ReviewModel.findOneAndDelete(req.params.review_id);
+    res.redirect(`/campgrounds/${req.params.id}`);
   })
 );
 
