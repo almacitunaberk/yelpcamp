@@ -1,5 +1,6 @@
 const express = require('express');
 const catchAsync = require('../utils/catchAsync');
+const isLoggedIn = require('../middleware/isLoggedIn');
 const CampgroundModel = require('../models/campgroundModel');
 const ReviewModel = require('../models/reviewModel');
 const router = express.Router();
@@ -12,7 +13,7 @@ router.get(
   })
 );
 
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
   res.render('campgrounds/new');
 });
 
@@ -35,6 +36,7 @@ app.post('/campgrounds', (req, res, next) => {
 
 router.post(
   '/',
+  isLoggedIn,
   catchAsync(async (req, res, next) => {
     const campground = req.body.campground;
     const camp = new CampgroundModel({
@@ -60,6 +62,7 @@ router.get(
 
 router.get(
   '/:id/edit',
+  isLoggedIn,
   catchAsync(async (req, res) => {
     const campground = await CampgroundModel.findById(req.params.id);
     res.render('campgrounds/edit', { campground });

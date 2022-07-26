@@ -7,9 +7,13 @@ const connectDB = require('./config/db');
 const methodOverride = require('method-override');
 const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
+const UserModel = require('./models/userModel');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
 
 const campgroundRouter = require('./routes/campgroundRoutes');
 const reviewRotuer = require('./routes/reviewRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const path = require('path');
 const app = express();
@@ -31,6 +35,13 @@ app.use(
     },
   })
 );
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(UserModel.authenticate()));
+passport.serializeUser(UserModel.serializeUser());
+passport.deserializeUser(UserModel.deserializeUser());
+
 app.use(morgan('tiny'));
 
 connectDB();
@@ -43,13 +54,24 @@ app.get('/', (req, res) => {
 });
 
 app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   next();
 });
 
+app.get('/fakeUser', async (req, res) => {
+  const user = new UserModel({
+    email: 'tuna@tuna.com',
+    username: 'tunaaaaa',
+  });
+  const newUser = await UserModel.register(user, 'tunatuna');
+  res.send(newUser);
+});
+
 app.use('/campgrounds', campgroundRouter);
 app.use('/campgrounds/:id/reviews', reviewRotuer);
+app.use('/', userRouter);
 
 app.all('*', (req, res, next) => {
   next(new ExpressError('Not Found', 404));

@@ -1,16 +1,16 @@
 const express = require('express');
 const catchAsync = require('../utils/catchAsync');
+const isLoggedIn = require('../middleware/isLoggedIn');
 const CampgroundModel = require('../models/campgroundModel');
 const ReviewModel = require('../models/reviewModel');
 const router = express.Router({ mergeParams: true });
 
 router.post(
   '/',
+  isLoggedIn,
   catchAsync(async (req, res, next) => {
     const { rating, body } = req.body.review;
     const campground = await CampgroundModel.findById(req.params.id);
-    console.log(req.params.id);
-    console.log(campground);
     const review = new ReviewModel({
       rating,
       body,

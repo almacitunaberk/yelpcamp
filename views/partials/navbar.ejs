@@ -18,6 +18,22 @@
         <a class="nav-link" href="/campgrounds">Campgrounds</a>
         <a class="nav-link" href="/campgrounds/new">New Campground</a>
       </div>
+      <div class="navbar-nav ms-auto">
+        <% if (!currentUser) { %>
+        <a class="nav-link" href="/login">Login</a>
+        <a class="nav-link" href="/register">Register</a>
+        <% } %> <% if (currentUser) { %>
+        <form id="logout-form" action="/logout" method="POST" style="cursor: pointer">
+          <a class="nav-link" onclick="submitFunc()">Logout</a>
+        </form>
+        <% } %>
+      </div>
     </div>
   </div>
 </nav>
+
+<script>
+  function submitFunc() {
+    document.getElementById('logout-form').submit();
+  }
+</script>
