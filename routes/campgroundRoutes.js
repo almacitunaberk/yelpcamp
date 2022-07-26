@@ -1,8 +1,11 @@
 const express = require('express');
 const catchAsync = require('../utils/catchAsync');
 const isLoggedIn = require('../middleware/isLoggedIn');
+const isAuthor = require('../middleware/isAuthor');
 const CampgroundModel = require('../models/campgroundModel');
+const UserModel = require('../models/userModel');
 const ReviewModel = require('../models/reviewModel');
+const ExpressError = require('../utils/ExpressError');
 const router = express.Router();
 
 router.get(
@@ -45,6 +48,7 @@ router.post(
       price: campground.price,
       description: campground.description,
       image: campground.image,
+      author: req.user._id.valueOf(),
     });
     await camp.save();
     req.flash('success', 'Successfully created a new campground!');
@@ -55,7 +59,15 @@ router.post(
 router.get(
   '/:id',
   catchAsync(async (req, res, next) => {
-    const campground = await CampgroundModel.findById(req.params.id).populate('reviews');
+    const campground = await CampgroundModel.findById(req.params.id).populate('reviews').populate('author');
+    let reviews = await Promise.all(
+      campground.reviews.map(async (id) => {
+        const review = await ReviewModel.findById(id).populate('owner');
+        return review;
+      })
+    );
+    console.log(reviews);
+    campground.reviews = reviews;
     res.render('campgrounds/show', { campground });
   })
 );
@@ -63,22 +75,25 @@ router.get(
 router.get(
   '/:id/edit',
   isLoggedIn,
+  isAuthor,
   catchAsync(async (req, res) => {
-    const campground = await CampgroundModel.findById(req.params.id);
-    res.render('campgrounds/edit', { campground });
+    const _campground = await CampgroundModel.findById(req.params.id);
+    res.render('campgrounds/edit', { campground: _campground });
   })
 );
 
 router.put(
   '/:id',
+  isLoggedIn,
+  isAuthor,
   catchAsync(async (req, res) => {
-    const campground = req.body.campground;
+    const newCampground = req.body.campground;
     await CampgroundModel.findOneAndUpdate(req.params.id, {
-      title: campground.title,
-      location: campground.location,
-      price: campground.price,
-      description: campground.description,
-      image: campground.image,
+      title: newCampground.title,
+      location: newCampground.location,
+      price: newCampground.price,
+      description: newCampground.description,
+      image: newCampground.image,
     });
     res.redirect(`/campgrounds/${req.params.id}`);
   })
@@ -86,6 +101,8 @@ router.put(
 
 router.delete(
   '/:id',
+  isLoggedIn,
+  isAuthor,
   catchAsync(async (req, res) => {
     await CampgroundModel.findByIdAndDelete(req.params.id);
     res.redirect('/campgrounds');

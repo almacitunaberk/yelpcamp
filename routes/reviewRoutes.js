@@ -1,6 +1,7 @@
 const express = require('express');
 const catchAsync = require('../utils/catchAsync');
 const isLoggedIn = require('../middleware/isLoggedIn');
+const isReviewOwner = require('../middleware/isReviewOwner');
 const CampgroundModel = require('../models/campgroundModel');
 const ReviewModel = require('../models/reviewModel');
 const router = express.Router({ mergeParams: true });
@@ -9,11 +10,12 @@ router.post(
   '/',
   isLoggedIn,
   catchAsync(async (req, res, next) => {
-    const { rating, body } = req.body.review;
+    const { rating, body } = req.body.review || req.session.body.review;
     const campground = await CampgroundModel.findById(req.params.id);
     const review = new ReviewModel({
       rating,
       body,
+      owner: req.user._id.valueOf(),
     });
     await review.save();
     campground.reviews.push(review);
@@ -28,7 +30,7 @@ router.get(
     const campground = await CampgroundModel.findById(req.params.id);
     const reviews = await Promise.all(
       campground.reviews.map(async (id) => {
-        return await ReviewModel.findById(id);
+        return await ReviewModel.findById(id).populate('author');
       })
     );
     res.send(reviews);
@@ -37,6 +39,8 @@ router.get(
 
 router.delete(
   '/:review_id',
+  isLoggedIn,
+  isReviewOwner,
   catchAsync(async (req, res, next) => {
     await CampgroundModel.findByIdAndUpdate(req.params.id, { $pull: { reviews: req.params.review_id } });
     await ReviewModel.findOneAndDelete(req.params.review_id);

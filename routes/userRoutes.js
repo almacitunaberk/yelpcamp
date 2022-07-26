@@ -48,9 +48,13 @@ router.post(
   }),
   (req, res) => {
     req.flash('success', 'Logged in successfully!');
-    const redirectTo = req.session.returnTo || '/campgrounds';
+    let redirectTo = req.session.returnTo || '/campgrounds';
     delete req.session.returnTo;
-    res.redirect(redirectTo);
+    if (req.session.body.review) {
+      res.redirect(307, redirectTo);
+    } else {
+      res.redirect(redirectTo);
+    }
   }
 );
 

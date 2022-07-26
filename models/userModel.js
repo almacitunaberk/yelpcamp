@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  campgrounds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Campground',
+    },
+  ],
 });
 
 userSchema.plugin(passportLocalMongoose);

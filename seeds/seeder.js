@@ -23,9 +23,12 @@ const seedDB = async () => {
       description:
         'Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores amet praesentium vitae iusto hic ullam!',
       price,
+      author: '62dfc49cdede2f0ae8e92a0d',
     });
     await camp.save();
   }
 };
 
-seedDB();
+seedDB().then(() => {
+  mongoose.connection.close();
+});
