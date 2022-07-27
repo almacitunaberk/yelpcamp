@@ -1,4 +1,8 @@
 const catchAsync = require('../utils/catchAsync');
+const dotenv = require('dotenv');
+dotenv.config();
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const geocoder = mbxGeocoding({ accessToken: process.env.MAPBOX_TOKEN });
 const CampgroundModel = require('../models/campgroundModel');
 const ReviewModel = require('../models/reviewModel');
 
@@ -8,6 +12,12 @@ module.exports.getAllCampgrounds = catchAsync(async (req, res) => {
 });
 
 module.exports.createNewCampground = catchAsync(async (req, res, next) => {
+  const geoData = await geocoder
+    .forwardGeocode({
+      query: req.body.campground.location,
+      limit: 1,
+    })
+    .send();
   const campground = req.body.campground;
   const camp = new CampgroundModel({
     title: campground.title,
@@ -16,6 +26,7 @@ module.exports.createNewCampground = catchAsync(async (req, res, next) => {
     description: campground.description,
     image: campground.image,
     author: req.user._id.valueOf(),
+    geometry: geoData.body.features[0].geometry,
   });
   await camp.save();
   req.flash('success', 'Successfully created a new campground!');
