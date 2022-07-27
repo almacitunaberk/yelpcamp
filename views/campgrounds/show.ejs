@@ -1,13 +1,11 @@
 <% layout('layouts/boilerplate') %>
 <script>
   const mapToken = '<%-process.env.MAPBOX_TOKEN%>'
-  const campground = <%- JSON.stringify(campground) %>
 </script>
-<div class="row">
-  <div class="col-6">
-    <div id='map' style='width: 100%; height: 300px;'></div>
-    <div class="card" style="max-height: 2rem">
-      <img src="<%= campground.image%>" class="card-img-top" alt="...">
+<div class="row py-3 ">
+  <div class="col-6">   
+    <div class="card">
+      <img src="<%= campground.image%>" class="card-img-top" alt="..." style="max-height: 400px">
       <div class="card-body">
         <h5 class="card-title"><%= campground.title %></h5>        
         <p class="card-text"><%= campground.description %></p>
@@ -28,6 +26,7 @@
     </div>
   </div>
   <div class="col-6">
+    <div id='map' style='width: 100%; height: 300px;'></div>
   <h2>Leave a Review</h2>
     <form action="<%=campground._id%>/reviews" class="mb-3 needs-validation" method="POST" novalidate>
       <div class="mb-3">
