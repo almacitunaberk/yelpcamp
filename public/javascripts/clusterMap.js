@@ -1,6 +1,6 @@
 mapboxgl.accessToken = mapToken;
 const map = new mapboxgl.Map({
-  container: 'map',
+  container: 'clusterMap',
   style: 'mapbox://styles/mapbox/light-v10',
   center: [-103.5917, 40.6699],
   zoom: 3,
@@ -91,7 +91,7 @@ map.on('load', () => {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
 
-    new mapboxgl.Popup().setLngLat(coordinates).setHTML(`${e.features[0].properties.popUpMarkup}`).addTo(map);
+    // new mapboxgl.Popup().setLngLat(coordinates).setHTML(`${e.features[0].properties.popUpMarkup}`).addTo(map);
   });
 
   map.on('mouseenter', 'clusters', () => {

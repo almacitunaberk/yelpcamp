@@ -50,15 +50,15 @@ connectDB();
 app.set('view engine', 'ejs');
 app.set('views directory', path.join(__dirname, 'views'));
 
-app.get('/', (req, res) => {
-  res.render('home');
-});
-
 app.use((req, res, next) => {
   res.locals.currentUser = req.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   next();
+});
+
+app.get('/', (req, res) => {
+  res.render('home');
 });
 
 app.get('/fakeUser', async (req, res) => {
