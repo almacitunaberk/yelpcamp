@@ -4,6 +4,7 @@ const flash = require('connect-flash');
 const morgan = require('morgan');
 const ejsMate = require('ejs-mate');
 const mongoSanitize = require('express-mongo-sanitize');
+const MongoStore = require('connect-mongo');
 const helmet = require('helmet');
 const connectDB = require('./config/db');
 const methodOverride = require('method-override');
@@ -19,6 +20,8 @@ const userRouter = require('./routes/userRoutes');
 
 const path = require('path');
 
+connectDB();
+
 const app = express();
 
 app.engine('ejs', ejsMate);
@@ -28,7 +31,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(flash());
 app.use(
   expressSession({
-    secret: 'secret key',
+    secret: process.env.SESSION_KEY,
+    store: MongoStore.create({
+      dbName: '_yelpcamp_store',
+      mongoUrl: process.env.MONGODB_URL,
+      touchAfter: 24 * 3600,
+      secret: process.env.SESSION_KEY,
+    }),
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -86,8 +95,6 @@ app.use(
     },
   })
 );
-
-connectDB();
 
 app.set('view engine', 'ejs');
 app.set('views directory', path.join(__dirname, 'views'));
